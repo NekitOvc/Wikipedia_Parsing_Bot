@@ -1,7 +1,7 @@
 import emoji
 
 class AllConfigurations():
-    TOKEN = '5860379795:AAFy9vSpIa31sZ18uabq0CUuyx9xFGaJ0QE'
+    TOKEN = ''
 
     welcome_text = emoji.emojize('Привет!:wave: Я бот.\
     \n\nЯ умею присылать интересные статьи из Wikipedia.:smiley:\
