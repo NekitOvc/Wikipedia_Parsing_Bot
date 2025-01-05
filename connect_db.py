@@ -1,36 +1,58 @@
-import sqlite3
-import logging
+import aiosqlite
+from logger import setup_logging
 
-# подключение БД
+logger = setup_logging()
+
 async def db_connection():
+    """Подключение к БД и создание таблицы пользователей"""
     global connection, cursor
-    connection = sqlite3.connect('db.db')
-    cursor = connection.cursor()
-    logging.info('Подключение к БД произошло успешно')
+    try:
+        connection = await aiosqlite.connect("db.db")
+        cursor = await connection.cursor()
+        logger.info("Подключение к БД произошло успешно")
 
-    # если таблицы users не существует, создать её
-    cursor.execute('CREATE TABLE IF NOT EXISTS users(user_id TEXT PRIMARY KEY, name TEXT)')
-    connection.commit()
-    logging.info('Создана таблица users')
+        await cursor.execute("CREATE TABLE IF NOT EXISTS users(user_id TEXT PRIMARY KEY, name TEXT)")
+        await connection.commit()
+        logger.info("Создана таблица users")
+    except Exception as e:
+        logger.error(f"Ошибка подключения к БД: {e}")
+    finally:
+        if connection:
+            await connection.close()
 
-# запись нового пользователя
 async def new_user(user_id, user_name):
-    user = cursor.execute('SELECT 1 FROM users WHERE user_id == "{key}"'.format(key=user_id)).fetchone()
+    """Запись нового пользователя в БД"""
+    try:
+        async with aiosqlite.connect("db.db") as connection:
+            cursor = await connection.cursor()
+            user = await cursor.execute("SELECT 1 FROM users WHERE user_id == ?", (user_id,))
+            user_exists = await user.fetchone()
 
-    # если пользователя не существует в БД
-    if not user:
-        # осуществляется запись в БД
-        cursor.execute('INSERT INTO users VALUES(?, ?)', (user_id, user_name))
-        connection.commit()
-        logging.info(f'Пользователь {user_name} успешно внесён в БД')
+            if not user_exists:
+                await cursor.execute("INSERT INTO users VALUES(?, ?)", (user_id, user_name))
+                await connection.commit()
+                logger.info(f"Пользователь {user_name} успешно внесён в БД")
+    except Exception as e:
+        logger.error(f"Ошибка при записи нового пользователя: {e}")
 
 async def table_articles():
-    # если таблицы articles не существует, создать её
-    cursor.execute('CREATE TABLE IF NOT EXISTS articles(value TEXT, url TEXT)')
-    connection.commit()
-    logging.info('Создана таблица articles')
+    """Создание таблицы со статьями"""
+    try:
+        async with aiosqlite.connect("db.db") as connection:
+            cursor = await connection.cursor()
+            await cursor.execute("CREATE TABLE IF NOT EXISTS articles(value TEXT, url TEXT)")
+            await connection.commit()
+            logger.info("Создана таблица articles")
+    except Exception as e:
+        logger.error(f"Ошибка при создании таблицы articles: {e}")
 
 async def recording_responce(value, url):
-    cursor.execute('INSERT INTO articles VALUES(?, ?)', (value, url))
-    connection.commit()
-    logging.info('Статья успешно внесена в БД')
+    """Запись статьи в БД"""
+    try:
+        async with aiosqlite.connect("db.db") as connection:
+            cursor = await connection.cursor()
+            await cursor.execute("INSERT INTO articles VALUES(?, ?)", (value, url))
+            await connection.commit()
+            logger.info("Статья успешно внесена в БД")
+    except Exception as e:
+        logger.error(f"Ошибка при записи статьи: {e}")
