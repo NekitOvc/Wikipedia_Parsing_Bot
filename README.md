@@ -4,11 +4,12 @@ https://t.me/Wikipedia_Parsing_Bot - бот, который получает з�
 Используемые библиотеки:
 
 - aiogram
+- aiosqlite
 - requests
-- beautifulsoup
+- beautifulsoup4
 - logging
 - emoji
-- sqlite3
+- python-dotenv
 
 Реализовано логирование в файл py_log.log и создание базы данных db.db с двумя таблицами:
 

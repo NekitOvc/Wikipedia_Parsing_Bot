@@ -1,26 +1,18 @@
-from bs4 import BeautifulSoup
-
 import requests
-import logging
+from bs4 import BeautifulSoup
+from logger import setup_logging
 
-# логирование в файл py_log.log в режиме перезаписи при каждом запуске бота с указанием времени
-logging.basicConfig(level=logging.INFO, filename='py_log.log', filemode='w', format='%(asctime)s %(levelname)s %(message)s')
+logger = setup_logging()
 
 class ParserUrl:
-    # url, с которым будем работать
-    url = 'https://ru.wikipedia.org/w/index.php?go=Перейти&search='
+    url = "https://ru.wikipedia.org/w/index.php?go=Перейти&search="
 
-    def parser_url(url):
-        # отправляем get-запрос
-        r = requests.get(url)
-        # проверка подключения
-        logging.info(f'Статус подключения: {r.status_code}')
+    def parser_url(self, url):
+        self.response = requests.get(url)
+        logger.info(f"Статус подключения: {self.response.status_code}")
 
-        soup = BeautifulSoup(r.text, 'html.parser')
-        # поиск тега div с классом mw-search-result-heading
-        link = soup.find_all('div', class_='mw-search-result-heading')
+        soup = BeautifulSoup(self.response.text, "html.parser")
+        link = soup.find_all("div", class_="mw-search-result-heading")
 
-        # если количество элементов > 0, то
         if len(link) > 0:
-            # новая ссылка
-            url = 'https://ru.wikipedia.org' + link[0].find('a')['href']
+            url = "https://ru.wikipedia.org" + link[0].find("a")["href"]
